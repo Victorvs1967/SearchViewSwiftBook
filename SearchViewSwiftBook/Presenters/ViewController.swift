@@ -64,6 +64,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
   
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     
+    isFiltering ? searchFooter.setSearchFooter(filteredRestaurants.count, of: restaurants.count) : searchFooter.hideSearchFooter()
     return isFiltering ? filteredRestaurants.count : restaurants.count
   }
   
@@ -95,7 +96,6 @@ extension ViewController: UISearchResultsUpdating, UISearchControllerDelegate, U
     
     navigationItem.searchController = searchController
     navigationController?.navigationBar.prefersLargeTitles = true
-    navigationController?.hidesBarsOnSwipe = true
     definesPresentationContext = true
     
   }
@@ -106,7 +106,6 @@ extension ViewController: UISearchResultsUpdating, UISearchControllerDelegate, U
     let scope = searchBar.scopeButtonTitles![searchBar.selectedScopeButtonIndex]
     guard let searchText = searchController.searchBar.text else { return }
     filterContent(searchText, scope: scope)
-    searchFooter.setIsFilteringToShow(filteredRestaurants.count, of: restaurants.count)
     tableView.reloadData()
   }
   

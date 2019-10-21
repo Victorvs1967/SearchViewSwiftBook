@@ -39,34 +39,27 @@ class SearchFooter: UIView {
     addSubview(label)
   }
   
-  private func showFooter() {
-    alpha = 1
-  }
-  
-  private func hideFooter() {
-    alpha = 0
-  }
-  
 }
 
 // MARK: Public API
 extension SearchFooter {
   
-  func setNotFiltering() {
+  func hideSearchFooter() {
     label.text = ""
-    hideFooter()
+    alpha = 0
   }
   
-  func setIsFilteringToShow(_ fileredItemsCount: Int, of totalItemCount: Int) {
+  func setSearchFooter(_ fileredItemsCount: Int, of totalItemCount: Int) {
     
     switch fileredItemsCount {
-    case totalItemCount: setNotFiltering()
+    case totalItemCount:
+      hideSearchFooter()
     case 0:
       label.text = "No items match your query"
-      showFooter()
+      alpha = 1
     default:
       label.text = "Find \(fileredItemsCount) of \(totalItemCount)"
-      showFooter()
+      alpha = 1
     }
   }
 }
