@@ -7,25 +7,17 @@
 //
 
 import UIKit
+import RealmSwift
 
 class ViewController: UIViewController {
   
-  private let restaurants = [
-    Restaurant(name: "Mafia", type: .fastfood),
-    Restaurant(name: "Birzha", type: .restaurant),
-    Restaurant(name: "CityTown", type: .restaurant),
-    Restaurant(name: "KentBar", type: .bar),
-    Restaurant(name: "Vilagio", type: .restaurant),
-    Restaurant(name: "Burger Farm", type: .fastfood),
-    Restaurant(name: "Kartofan", type: .fastfood),
-    Restaurant(name: "TownCafe", type: .restaurant),
-]
+  private var restaurants: Results<Restaurant>!
+  private var filteredRestaurants: Results<Restaurant>!
   
   @IBOutlet weak var tableView: UITableView!
   @IBOutlet weak var searchFooter: SearchFooter!
   
   private var searchController: UISearchController!
-  private var filteredRestaurants = [Restaurant]()
   private var searchBarIsEmpty: Bool {
     guard let text = searchController.searchBar.text else { return false }
     return text.isEmpty
@@ -37,6 +29,13 @@ class ViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    
+    do {
+      let realm = try Realm()
+      restaurants = realm.objects(Restaurant.self)
+    } catch let error {
+      print(error.localizedDescription)
+    }
     
     setupTableView()
     setupSearchController()
@@ -75,7 +74,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     let restaurant = isFiltering ? filteredRestaurants[indexPath.row] : restaurants[indexPath.row]
     
     cell.textLabel?.text = restaurant.name
-    cell.detailTextLabel?.text = restaurant.type.rawValue
+    cell.detailTextLabel?.text = restaurant.type?.name
     
     return cell
   }
@@ -111,21 +110,60 @@ extension ViewController: UISearchResultsUpdating, UISearchControllerDelegate, U
   
   private func filterContent(_ searchText: String, scope: String = "All") {
     
-    filteredRestaurants = restaurants.filter({ (restaurant) -> Bool in
-      
-      let doesCategoryMatch = (scope == "All") || (restaurant.type.rawValue == scope)
-      
-      if searchBarIsEmpty {
-        return doesCategoryMatch
-      } else {
-        return doesCategoryMatch && restaurant.name.localizedCaseInsensitiveContains(searchText)
-      }      
-    })
+       if scope == "All" {
+      filteredRestaurants = restaurants.filter("name CONTAINS[c] '\(searchText)'")
+    } else if searchBarIsEmpty {
+      filteredRestaurants = restaurants.filter("type.name = '\(scope)'")
+    } else {
+      filteredRestaurants = restaurants.filter("name CONTAINS[c] '\(searchText)' AND type.name = '\(scope)'")
+    }
+    
   }
   
   func searchBar(_ searchBar: UISearchBar, selectedScopeButtonIndexDidChange selectedScope: Int) {
     
     filterContent(searchBar.text!, scope: searchBar.scopeButtonTitles![selectedScope])
   }
+}
+
+//MARK: - Add data to database
+extension ViewController {
+  
+  private func addData() {
+    let restaurantsData = [
+      "Mafia": "Fastfood",
+      "Birzha": "Restaurant",
+      "KentBar": "Bar",
+      "Vilagio": "Restaurant",
+      "Burger Farm": "Fastfood",
+      "Kartofan": "Fastfood",
+      "TownCafe": "Restaurant",
+    ]
+    
+    var rests: [Restaurant] = []
+    for key in restaurantsData.keys {
+      let r = Restaurant()
+      let rType = RestaurantType()
+      rType.name = restaurantsData[key]!
+      r.name = key
+      r.type = rType
+      rests.append(r)
+    }
+    print(rests)
+    
+    guard let realmPath = Realm.Configuration.defaultConfiguration.fileURL?.absoluteString else { return }
+    print(realmPath)
+    
+    do {
+      let realm = try Realm()
+      
+      try realm.write {
+        realm.add(rests)
+      }
+    } catch let error {
+      print(error.localizedDescription)
+    }
+  }
+
 }
 

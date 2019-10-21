@@ -6,17 +6,14 @@
 //  Copyright © 2019 Victor Smirnov. All rights reserved.
 //
 
-import Foundation
+import RealmSwift
 
-struct Restaurant {
+class Restaurant: Object {
   
-  var name: String
-  var type: RestaurantType
+ @objc dynamic var name = ""
+  @objc dynamic var type: RestaurantType?
 }
 
-enum RestaurantType: String {
-  
-  case restaurant = "Restaurant"
-  case fastfood = "Fastfood"
-  case bar = "Bar"
+class RestaurantType: Object {
+  @objc dynamic var name = ""
 }
