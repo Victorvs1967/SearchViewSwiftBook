@@ -18,13 +18,14 @@ class ViewController: UIViewController {
     Restaurant(name: "Vilagio", type: .restaurant),
     Restaurant(name: "Burger Farm", type: .fastfood),
     Restaurant(name: "Kartofan", type: .fastfood),
-  ]
-  
-  private var filteredRestaurants = [Restaurant]()
+    Restaurant(name: "TownCafe", type: .restaurant),
+]
   
   @IBOutlet weak var tableView: UITableView!
+  @IBOutlet weak var searchFooter: SearchFooter!
   
   private var searchController: UISearchController!
+  private var filteredRestaurants = [Restaurant]()
   private var searchBarIsEmpty: Bool {
     guard let text = searchController.searchBar.text else { return false }
     return text.isEmpty
@@ -105,6 +106,8 @@ extension ViewController: UISearchResultsUpdating, UISearchControllerDelegate, U
     let scope = searchBar.scopeButtonTitles![searchBar.selectedScopeButtonIndex]
     guard let searchText = searchController.searchBar.text else { return }
     filterContent(searchText, scope: scope)
+    searchFooter.setIsFilteringToShow(filteredRestaurants.count, of: restaurants.count)
+    tableView.reloadData()
   }
   
   private func filterContent(_ searchText: String, scope: String = "All") {
@@ -119,8 +122,6 @@ extension ViewController: UISearchResultsUpdating, UISearchControllerDelegate, U
         return doesCategoryMatch && restaurant.name.localizedCaseInsensitiveContains(searchText)
       }      
     })
-    
-    tableView.reloadData()
   }
   
   func searchBar(_ searchBar: UISearchBar, selectedScopeButtonIndexDidChange selectedScope: Int) {
